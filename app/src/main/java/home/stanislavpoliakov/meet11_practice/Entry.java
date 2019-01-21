@@ -13,7 +13,7 @@ import android.arch.persistence.room.PrimaryKey;
  * text - текст записи
  */
 @Entity (tableName = "entries", indices = {@Index("id")})
-public class Entry {
+public class Entry implements Cloneable{
     @PrimaryKey(autoGenerate = true)
     private int id;
 
@@ -45,6 +45,14 @@ public class Entry {
 
     }
 
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getTimeStamp() {
         return this.timeStamp;
     }
@@ -68,5 +76,15 @@ public class Entry {
     @Ignore
     public boolean isLarge() {
         return this.isLarge;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Entry clonedEntry = (Entry) super.clone();
+        clonedEntry.title = this.title;
+        clonedEntry.text = this.text;
+        clonedEntry.id = this.id;
+        clonedEntry.timeStamp = this.timeStamp;
+        return clonedEntry;
     }
 }
