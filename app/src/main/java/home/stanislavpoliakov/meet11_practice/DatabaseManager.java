@@ -57,7 +57,7 @@ public class DatabaseManager {
             CompletableFuture<Cursor> completableFuture = CompletableFuture
                     .supplyAsync(() -> dao.getEntriesAll(), pool);
             Cursor result = completableFuture.get();
-            completableFuture.thenApplyAsync(this::convertCursorToEntryList, pool)
+            completableFuture.thenApplyAsync(ConvertUtills::convertCursorToEntryList, pool)
                     .thenAcceptAsync(this::postResult, pool);
             return result;
         } catch (ExecutionException ex) {
@@ -68,7 +68,7 @@ public class DatabaseManager {
         return null;
     }
 
-    private List<Entry> convertCursorToEntryList(Cursor cursor) {
+    /*private List<Entry> convertCursorToEntryList(Cursor cursor) {
         List<Entry> entryList = new ArrayList<>();
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
@@ -84,7 +84,7 @@ public class DatabaseManager {
         Log.d(TAG, "convertCursorToEntryList: size = " + entryList.size());
         return entryList;
     }
-
+*/
     public long insertEntry(Entry entry) {
         /*CompletableFuture<Void> f = CompletableFuture
                 .runAsync(() -> dao.insertEntry(entry), pool)

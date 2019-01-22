@@ -1,6 +1,11 @@
 package home.stanislavpoliakov.meet11_practice;
 
 import android.content.ContentValues;
+import android.database.Cursor;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ConvertUtills {
     private static final String TITLE = "title";
@@ -23,4 +28,21 @@ public final class ConvertUtills {
         return contentValues;
     }
 
+    public static List<Entry> convertCursorToEntryList(Cursor cursor) {
+        List<Entry> entryList = new ArrayList<>();
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            String title = cursor.getString(cursor.getColumnIndex("title"));
+            String text = cursor.getString(cursor.getColumnIndex("entry_text"));
+            int id = cursor.getInt(cursor.getColumnIndex("id"));
+
+            Entry entry = new Entry(title, text, id);
+            entryList.add(entry);
+
+            cursor.moveToNext();
+        }
+        cursor.close();
+        //Log.d(TAG, "convertCursorToEntryList: size = " + entryList.size());
+        return entryList;
+    }
 }

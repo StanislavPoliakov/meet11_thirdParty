@@ -1,5 +1,6 @@
 package home.stanislavpoliakov.meet11_practice;
 
+import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,7 +33,22 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
     //private Handler mHandler;
     private volatile List<Entry> data;
     private MyAdapter mAdapter;
-    FragmentManager fragmentManager = getSupportFragmentManager();
+    private FragmentManager fragmentManager = getSupportFragmentManager();
+    private ContentObserver mContentObserver;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getContentResolver().registerContentObserver(
+                Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/#"),
+                true, mContentObserver);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getContentResolver().unregisterContentObserver(mContentObserver);
+    }
 
     @Override
     public void create(Entry entry) {
@@ -66,13 +82,8 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         data.remove(entry);
     }
 
-    @Override
-    public void delete(int id) {
-
-    }
-
     private void repaintRecycler() {
-        //Log.d(TAG, "repaintRecycler: ");
+        Log.d(TAG, "repaintRecycler: ");
         if (data != null || !data.isEmpty()) mAdapter.onNewData(data);
     }
 
@@ -85,8 +96,8 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
                 //Log.d(TAG, "handleMessage: data = " + data);
                 initRecyclerView();
             } else if (msg.what == DatabaseManager.REPAINT_REQUEST) {
-                //Log.d(TAG, "handleMessage: ");
-                repaintRecycler();
+                Log.d(TAG, "handleMessage: ");
+                //repaintRecycler();
             }
         }
     };
@@ -106,7 +117,28 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
                             .commitNow();
                 });
 
+        mContentObserver = new MyObserver(new Handler(Looper.getMainLooper()));
+
         init();
+    }
+
+    private class MyObserver extends ContentObserver {
+
+        /**
+         * Creates a content observer.
+         *
+         * @param handler The handler to run {@link #onChange} on, or null if none.
+         */
+        public MyObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            repaintRecycler();
+            Log.d(TAG, "onChange: ");
+        }
     }
 
     @Override
@@ -175,14 +207,5 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    private void insertData(Entry entry) {
-
-        int id = entry.getId();
-        final Uri CONTENT_URI =
-                Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
-
-        getContentResolver().insert(CONTENT_URI, ConvertUtills.convertEntryToValues(entry));
     }
 }

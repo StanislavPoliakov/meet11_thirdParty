@@ -62,6 +62,8 @@ public class MyContentProvider extends ContentProvider {
             cursor = mDatabase.readEntriesAll();
         }
         else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
+
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -79,6 +81,9 @@ public class MyContentProvider extends ContentProvider {
             id = mDatabase.insertEntry(ConvertUtills.convertValuesToEntry(values));
             Log.d(TAG, "insert: id = " + id);
         } else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
+
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return Uri.parse(CONTENT_URI + "/" + id);
     }
 
@@ -99,6 +104,9 @@ public class MyContentProvider extends ContentProvider {
             rowsUpdated = mDatabase.updateEntry(ConvertUtills.convertValuesToEntry(values));
         }
         else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
+
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return rowsUpdated;
     }
 
@@ -121,6 +129,10 @@ public class MyContentProvider extends ContentProvider {
             //Log.d(TAG, "delete: Rows Deleted = " + rowsDeleted);
         }
         else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
+
+        Log.d(TAG, "delete: URI = " + uri);
+        getContext().getContentResolver().notifyChange(uri, null);
+
         return rowsDeleted;
     }
 

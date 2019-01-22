@@ -6,5 +6,4 @@ public interface CRUDable {
     void create(Entry entry);
     void update(Bundle entryInfo);
     void delete(Entry entry);
-    void delete(int id);
 }
