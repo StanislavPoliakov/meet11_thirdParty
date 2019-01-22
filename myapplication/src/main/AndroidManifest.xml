@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="home.stanislavpoliakov.meet11_thirdparty">
-    <permission android:name="NEW"></permission>
+    package="home.stanislavpoliakov.myapplication">
+<uses-permission android:name=""
 
     <application
         android:allowBackup="true"
@@ -10,11 +10,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity
-            android:name="home.stanislavpoliakov.meet11_thirdparty.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
