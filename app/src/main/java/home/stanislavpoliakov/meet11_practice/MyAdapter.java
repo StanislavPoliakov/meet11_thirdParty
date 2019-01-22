@@ -24,11 +24,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         //this.data = cloneList(newData);
         this.data = new ArrayList<>();
         this.data.addAll(newData);
-        Log.d(TAG, "MyAdapter: this.data = " + this.data);
-        Log.d(TAG, "MyAdapter: data = " + newData);
+        //Log.d(TAG, "MyAdapter: this.data = " + this.data);
+        //Log.d(TAG, "MyAdapter: data = " + newData);
     }
 
-    private List<Entry> cloneList(List<Entry> newList) {
+    /*private List<Entry> cloneList(List<Entry> newList) {
         List<Entry> resultList = new ArrayList<>();
         try {
             for (Entry entry : newList) {
@@ -38,7 +38,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
             Log.w(TAG, "cloneList: ", ex);
         }
         return resultList;
-    }
+    }*/
 
     @NonNull
     @Override
@@ -48,7 +48,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     }
 
     public void onNewData(List<Entry> newData) {
-        Log.d(TAG, "onNewData: newData = " + newData);
+        //Log.d(TAG, "onNewData: newData = " + newData);
         DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffCall(data, newData));
         result.dispatchUpdatesTo(this);
         data.clear();

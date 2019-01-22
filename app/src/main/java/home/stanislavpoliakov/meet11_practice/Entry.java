@@ -31,6 +31,7 @@ public class Entry implements Cloneable{
     @Ignore
     private static final String TAG = "meet9_logs";
 
+    @Ignore
     public Entry(String title, String text) {
         this.title = title;
         this.text = text;
@@ -38,6 +39,12 @@ public class Entry implements Cloneable{
         //TODO Релизовать сохранение записи в отдельный файл, если запись слишком большая
         //TODO Очевидно, что в база должна хранить ссылку на файл или NULL, если запись сохранена в базе
         isLarge = false;
+    }
+
+    public Entry(String title, String text, int id) {
+        this.title = title;
+        this.text = text;
+        this.id = id;
     }
 
     public void setTimeStamp(String timeStamp) {

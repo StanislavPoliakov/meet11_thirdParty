@@ -25,21 +25,21 @@ public class DatabaseManager {
     private static DatabaseManager instance;
     private EntryDAO dao;
     private ExecutorService pool;
-    private Handler uiHandler;
+    private Handler mHandler = new Handler();
 
-    private DatabaseManager(Context context, Handler uiHandler) {
+    private DatabaseManager(Context context) {
         EntryDatabase database = Room.databaseBuilder(context.getApplicationContext(),
                 EntryDatabase.class, "new_database")
                 .fallbackToDestructiveMigration()
                 .build();
         this.dao = database.getEntryDAO();
         this.pool = Executors.newSingleThreadExecutor();
-        this.uiHandler = uiHandler;
+        //this.uiHandler = uiHandler;
     }
 
-    public static DatabaseManager getInstance(Context context, Handler uiHandler) {
+    public static DatabaseManager getInstance(Context context) {
         if (instance == null) {
-            instance = new DatabaseManager(context, uiHandler);
+            instance = new DatabaseManager(context);
         }
         return instance;
     }
@@ -50,16 +50,38 @@ public class DatabaseManager {
                 .thenAccept(this::postResult);
     }
 
-    public void insertEntry(Entry entry) {
-        CompletableFuture<Void> f = CompletableFuture
+    public long insertEntry(Entry entry) {
+        /*CompletableFuture<Void> f = CompletableFuture
                 .runAsync(() -> dao.insertEntry(entry), pool)
-                .thenRunAsync(this::postRepaint);
+                .thenRunAsync(this::postRepaint);*/
+        try {
+            CompletableFuture<Long> completableFuture = CompletableFuture
+                    .supplyAsync(() -> dao.insertEntry(entry), pool);
+            long result = completableFuture.get();
+            completableFuture.thenRunAsync(this::postRepaint, pool);
+            return result;
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
     }
 
-    public void updateEntry(Entry entry) {
-        CompletableFuture
-                .runAsync(() -> dao.updateEntry(entry), pool)
-                .thenRunAsync(this::postRepaint);
+    public int updateEntry(Entry entry) {
+        try {
+            CompletableFuture<Integer> completableFuture = CompletableFuture
+                    .supplyAsync(() -> dao.updateEntry(entry), pool);
+            int result = completableFuture.get();
+            completableFuture.thenRunAsync(this::postRepaint, pool);
+            return result;
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+
     }
 
     public void deleteEntry(Entry entry) {
@@ -68,14 +90,38 @@ public class DatabaseManager {
                 .thenRunAsync(this::postRepaint);
     }
 
+    public int deleteEntryById(int id) {
+        try {
+            CompletableFuture<Integer> completableFuture = CompletableFuture
+                    .supplyAsync(() -> dao.deleteEntryById(id), pool);
+            int result = completableFuture.get();
+            completableFuture.thenRunAsync(this::postRepaint, pool);
+            return result;
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
+
     private void postResult(List<Entry> result) {
         Message message = Message.obtain(null, DATABASE_ENTRIES, result);
-        uiHandler.sendMessage(message);
+        mHandler.sendMessage(message);
     }
 
     private void postRepaint() {
         Message message = Message.obtain(null, REPAINT_REQUEST);
-        Log.d(TAG, "postRepaint: Thread = " + Thread.currentThread());
-        uiHandler.sendMessage(message);
+        //Log.d(TAG, "postRepaint: Thread = " + Thread.currentThread());
+        mHandler.sendMessage(message);
+        //Log.d(TAG, "postRepaint: what = " + message.what);
+    }
+
+    public Handler getHandler() {
+        return mHandler;
+    }
+
+    public void setHandler(Handler handler) {
+        mHandler = handler;
     }
 }

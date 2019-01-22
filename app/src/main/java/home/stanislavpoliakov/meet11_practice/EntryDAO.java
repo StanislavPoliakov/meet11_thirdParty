@@ -15,6 +15,9 @@ public interface EntryDAO {
     @Query("SELECT * FROM entries")
     List<Entry> getEntries();
 
+    @Query("DELETE FROM entries WHERE id = :id")
+    int deleteEntryById(int id);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertEntry(Entry entry);
 

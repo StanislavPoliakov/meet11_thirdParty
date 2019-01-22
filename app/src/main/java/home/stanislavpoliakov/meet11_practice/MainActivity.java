@@ -1,5 +1,6 @@
 package home.stanislavpoliakov.meet11_practice;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,21 +17,33 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+//import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements CRUDable{
     private static final String TAG = "meet11_logs";
+    private static final String AUTHORITY = "content_provider";
+    private static final String ENTRIES_TABLE = "new_database";
+
     private DatabaseManager dbManager;
     private UIHandler uiHandler = new UIHandler();
+    //private Handler mHandler;
     private volatile List<Entry> data;
     private MyAdapter mAdapter;
     FragmentManager fragmentManager = getSupportFragmentManager();
 
     @Override
     public void create(Entry entry) {
-        dbManager.insertEntry(entry);
+        int id = 0;
+        Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
+        //Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/");
+        CONTENT_URI = getContentResolver().insert(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry));
+        String stringID = CONTENT_URI.getLastPathSegment();
+        id = Integer.parseInt(stringID);
+        entry.setId(id);
         data.add(entry);
-        Log.d(TAG, "create: data = " + data);
     }
 
     @Override
@@ -38,32 +51,45 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         Entry entry = data.get(entryInfo.getInt("item position"));
         entry.setTitle(entryInfo.getString("title"));
         entry.setText(entryInfo.getString("body"));
-        dbManager.updateEntry(entry);
+        int id = entry.getId();
+        Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
+        getContentResolver().update(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry), null, null);
+        //dbManager.updateEntry(entry);
     }
 
     @Override
     public void delete(Entry entry) {
-        dbManager.deleteEntry(entry);
+        int id = entry.getId();
+        Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
+        getContentResolver().delete(CONTENT_URI, null, null);
+        //dbManager.deleteEntry(entry);
         data.remove(entry);
     }
 
+    @Override
+    public void delete(int id) {
+
+    }
+
     private void repaintRecycler() {
+        //Log.d(TAG, "repaintRecycler: ");
         if (data != null || !data.isEmpty()) mAdapter.onNewData(data);
     }
 
     private class UIHandler extends Handler {
 
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage (Message msg){
             if (msg.what == DatabaseManager.DATABASE_ENTRIES) {
                 data = (List<Entry>) msg.obj;
                 //Log.d(TAG, "handleMessage: data = " + data);
                 initRecyclerView();
             } else if (msg.what == DatabaseManager.REPAINT_REQUEST) {
+                //Log.d(TAG, "handleMessage: ");
                 repaintRecycler();
             }
         }
-    }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,10 +137,12 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
     }
 
     private void init() {
-        dbManager = DatabaseManager.getInstance(this, uiHandler);
+        dbManager = DatabaseManager.getInstance(this);
+        dbManager.setHandler(uiHandler);
         //dbManager.insertEntry(new Entry("1", "1"));
         dbManager.readEntries();
         //Log.d(TAG, "init: Main thread = " + Thread.currentThread());
+        //mHandler = dbManager.getHandler();
     }
 
     private void initRecyclerView() {
@@ -145,5 +173,14 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void insertData(Entry entry) {
+
+        int id = entry.getId();
+        final Uri CONTENT_URI =
+                Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
+
+        getContentResolver().insert(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry));
     }
 }
