@@ -3,11 +3,13 @@ package home.stanislavpoliakov.meet11_practice;
 import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Entity;
+import android.database.Cursor;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -44,10 +46,43 @@ public class DatabaseManager {
         return instance;
     }
 
-    public void readEntries() {
+    /*public void readEntries() {
         CompletableFuture
                 .supplyAsync(() -> dao.getEntries(), pool)
-                .thenAccept(this::postResult);
+                .thenAccept(this::postResult, pool);
+    }*/
+
+    public Cursor readEntriesAll() {
+        try {
+            CompletableFuture<Cursor> completableFuture = CompletableFuture
+                    .supplyAsync(() -> dao.getEntriesAll(), pool);
+            Cursor result = completableFuture.get();
+            completableFuture.thenApplyAsync(this::convertCursorToEntryList, pool)
+                    .thenAcceptAsync(this::postResult, pool);
+            return result;
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    private List<Entry> convertCursorToEntryList(Cursor cursor) {
+        List<Entry> entryList = new ArrayList<>();
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            String title = cursor.getString(cursor.getColumnIndex("title"));
+            String text = cursor.getString(cursor.getColumnIndex("entry_text"));
+            int id = cursor.getInt(cursor.getColumnIndex("id"));
+
+            Entry entry = new Entry(title, text, id);
+            entryList.add(entry);
+
+            cursor.moveToNext();
+        }
+        Log.d(TAG, "convertCursorToEntryList: size = " + entryList.size());
+        return entryList;
     }
 
     public long insertEntry(Entry entry) {

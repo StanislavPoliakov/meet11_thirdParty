@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         int id = 0;
         Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
         //Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/");
-        CONTENT_URI = getContentResolver().insert(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry));
+        CONTENT_URI = getContentResolver().insert(CONTENT_URI, ConvertUtills.convertEntryToValues(entry));
         String stringID = CONTENT_URI.getLastPathSegment();
         id = Integer.parseInt(stringID);
         entry.setId(id);
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         entry.setText(entryInfo.getString("body"));
         int id = entry.getId();
         Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
-        getContentResolver().update(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry), null, null);
+        getContentResolver().update(CONTENT_URI, ConvertUtills.convertEntryToValues(entry), null, null);
         //dbManager.updateEntry(entry);
     }
 
@@ -140,7 +140,9 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         dbManager = DatabaseManager.getInstance(this);
         dbManager.setHandler(uiHandler);
         //dbManager.insertEntry(new Entry("1", "1"));
-        dbManager.readEntries();
+        //dbManager.readEntries();
+        Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE);
+        getContentResolver().query(CONTENT_URI, null, null, null, null);
         //Log.d(TAG, "init: Main thread = " + Thread.currentThread());
         //mHandler = dbManager.getHandler();
     }
@@ -181,6 +183,6 @@ public class MainActivity extends AppCompatActivity implements CRUDable{
         final Uri CONTENT_URI =
                 Uri.parse("content://" + AUTHORITY + "/" + ENTRIES_TABLE + "/" + id);
 
-        getContentResolver().insert(CONTENT_URI, MyContentProvider.ConvertUtils.convertEntryToValues(entry));
+        getContentResolver().insert(CONTENT_URI, ConvertUtills.convertEntryToValues(entry));
     }
 }

@@ -42,11 +42,27 @@ public class MyContentProvider extends ContentProvider {
         return mDatabase != null;
     }
 
+    /**
+     * Метод получения всех элементов базы в виде объекта Cursor. Реализация: Тип возвращаемого значения
+     * метода DAO - Cursor. Реализация в DatabaseManager - получаем cursor, конвертируем в List<Entry>
+     * и на отрисовку в RecyclerView отправляется уже список элементов. Но здесь светит Cursor
+     * @param uri фактически, это адрес всей таблицы
+     * @param projection не реализовано здесь
+     * @param selection не реализовано здесь
+     * @param selectionArgs не реализовано здесь
+     * @param sortOrder не реализовано здесь
+     * @return объект Cursor на список найденных значений
+     */
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        int uriType = uriMatcher.match(uri);
+        Cursor cursor;
+        if (uriType == ENTRIES) {
+            cursor = mDatabase.readEntriesAll();
+        }
+        else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
+        return cursor;
     }
 
     /**
@@ -60,7 +76,7 @@ public class MyContentProvider extends ContentProvider {
         int uriType = uriMatcher.match(uri);
         long id;
         if (uriType == ENTRY_ID) {
-            id = mDatabase.insertEntry(ConvertUtils.convertValuesToEntry(values));
+            id = mDatabase.insertEntry(ConvertUtills.convertValuesToEntry(values));
             Log.d(TAG, "insert: id = " + id);
         } else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
         return Uri.parse(CONTENT_URI + "/" + id);
@@ -80,21 +96,28 @@ public class MyContentProvider extends ContentProvider {
         int uriType = uriMatcher.match(uri);
         int rowsUpdated;
         if (uriType == ENTRY_ID) {
-            rowsUpdated = mDatabase.updateEntry(ConvertUtils.convertValuesToEntry(values));
+            rowsUpdated = mDatabase.updateEntry(ConvertUtills.convertValuesToEntry(values));
         }
         else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
         return rowsUpdated;
     }
 
+    /**
+     * Метод удаления элемента из базы данных на уровне ContentProvider
+     * @param uri адрес (ссылка) элемента, который необходимо удалить
+     * @param selection WHERE - реализовано на уровне Data Access Object
+     * @param selectionArgs WHERE params - аргументы выбора не реализованы здесь
+     * @return количество удаленных элементов
+     */
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         int uriType = uriMatcher.match(uri);
-        int rowsDeleted = 0;
+        int rowsDeleted;
         if (uriType == ENTRY_ID) {
             String stringID = uri.getLastPathSegment();
             int id = Integer.parseInt(stringID);
-            Log.d(TAG, "delete: ID = " + id);
-            mDatabase.deleteEntryById(id);
+            //Log.d(TAG, "delete: ID = " + id);
+            rowsDeleted = mDatabase.deleteEntryById(id);
             //Log.d(TAG, "delete: Rows Deleted = " + rowsDeleted);
         }
         else throw new UnsupportedOperationException("Illegal URI(" + uri + ")");
@@ -106,31 +129,5 @@ public class MyContentProvider extends ContentProvider {
         // TODO: Implement this to handle requests for the MIME type of the data
         // at the given URI.
         throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    static class ConvertUtils {
-        private static final String TITLE = "title";
-        private static final String TEXT = "entry_text";
-        private static final String ID = "id";
-
-        public static Entry convertValuesToEntry(ContentValues contentValues) {
-            Entry entry = new Entry(contentValues.getAsString(TITLE),
-                    contentValues.getAsString(TEXT),
-                    contentValues.getAsInteger(ID));
-            return entry;
-        }
-
-        public static ContentValues convertEntryToValues(Entry entry) {
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(TITLE, entry.getTitle());
-            contentValues.put(TEXT, entry.getText());
-            contentValues.put(ID, entry.getId());
-
-            return contentValues;
-        }
-    }
-
-    private void insertData() {
-
     }
 }
